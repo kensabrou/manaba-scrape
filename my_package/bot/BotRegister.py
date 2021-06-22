@@ -162,7 +162,6 @@ class BotRegister(tkinter.Frame):
         info_dic = self.form_output(bot)
         self.register(info_dic)
         browser.quit()
-        self.quit()
         return True
 
 def show_auth_code(code):

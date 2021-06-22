@@ -79,7 +79,7 @@ class WebRegister(tkinter.Frame):
             c.execute(f"INSERT INTO webs VALUES ({types})", self.form_output())
             self.quit()
         except:
-            print('fail to insert data.')
+            pass
         # commit changes to the database.
         conn.commit()
         conn.close()

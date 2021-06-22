@@ -32,9 +32,6 @@ def get_bot_data():
             data = c.fetchone()
     except:
         register_bot()
-        c.execute("SELECT * FROM bots")
-        data = c.fetchone()
-    if data is None:
         conn.close()
         return None
     bot = Bot(data[0], data[1], data[2])
@@ -44,9 +41,10 @@ def get_bot_data():
     return bot
 
 # スクレイピングするwebのdbが存在するかを確認、なければ作成、あればデータを返す
-def get_manaba_data() -> Web:
+def get_manaba_data():
     conn = sqlite3.connect('my.db')
     c = conn.cursor()
+    data = None
     try:
         c.execute("SELECT * FROM webs WHERE name = 'manaba'")
         data = c.fetchone()
@@ -56,17 +54,28 @@ def get_manaba_data() -> Web:
             data = c.fetchone()
     except:
         register_web(default_name='manaba', default_url='https://ct.ritsumei.ac.jp/ct/home')
-        c.execute("SELECT * FROM webs WHERE name = 'manaba'")
-        data = c.fetchone()
+        try:
+            c.execute("SELECT * FROM webs WHERE name = 'manaba'")
+            data = c.fetchone()
+        except:
+            conn.close()
+            return None
+    if data is None:
+        c.execute("DELETE FROM webs WHERE name='manaba'")
+        conn.commit()
+        conn.close()
+        return None
     web = Web(data[0], data[1], data[2], data[3], data[4])
     conn.commit()
     conn.close()
     return web
 
 # manabaからレポート情報を取得
-def get_homeworks() -> list:
+def get_homeworks():
     # manabaログイン情報
     web = get_manaba_data()
+    if web is None:
+        return None
 
     # headlessモードで実行
     options = Options()
@@ -78,9 +87,9 @@ def get_homeworks() -> list:
         browser.get(web.get_pageData('url'))
         time.sleep(3)
     else:
-        register_web(default_name=web.get_pageData('name'), default_id=web.get_pageData('id'), default_password=web.get_pageData('password'))
+        print('URL does not exist')
         return None
-    
+
     form_dict = {'/html/body/div/div[2]/div[1]/form/p[1]/input':web.get_pageData('id'),
                 '/html/body/div/div[2]/div[1]/form/p[2]/input':web.get_pageData('password')}
     scrape.input_element(browser, form_dict)
@@ -100,8 +109,7 @@ def get_homeworks() -> list:
         c.execute("DELETE FROM webs WHERE name='manaba'")
         conn.commit()
         conn.close()
-        register_web(default_name=web.get_pageData('name'), default_url=web.get_pageData('url'))
-        return None
+        return get_homeworks()
 
     # 受講科目の表示を曜日形式に変更
     scrape.button_click(browser, '/html/body/div[2]/div[2]/div/div[1]/div[2]/ul/li[3]/a')
@@ -147,13 +155,12 @@ def send_message(messages:list, bot:Bot):
 
 def main():
     bot = get_bot_data()
-    if bot is None:
-        bot = get_bot_data()
     if bot is not None:
-        homework = None
-        while homework is None:
-            homework = get_homeworks()
-        send_message(homework, bot)
+        homework = get_homeworks()
+        if homework is None:
+           exit()
+        if homework is not None:
+            send_message(homework, bot)
 
 if __name__ == '__main__':
     main()
