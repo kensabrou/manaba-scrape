@@ -16,27 +16,34 @@ from my_package.utils import url, scrape
 from my_package.bot.BotRegister import register_bot
 from my_package.web.WebRegister import register_web
 
+################################# manaba以外をスレイピングする場合はget_manaba_data()、get_homeworks()とmain()を修正する。##########################################
 
-def get_bot_data() -> Bot:
+# LINEアカウント情報を用いてLINE Notifyサービスと連携する
+def get_bot_data():
     conn = sqlite3.connect('my.db')
     c = conn.cursor()
     data = None
     bot = None
     try:
         c.execute("SELECT * FROM bots")
+        data = c.fetchone()
+        if data is None:
+            register_bot()
+            data = c.fetchone()
     except:
         register_bot()
         c.execute("SELECT * FROM bots")
-    data = c.fetchone()
+        data = c.fetchone()
     if data is None:
-        register_bot()
-    else:
-        bot = Bot(data[0], data[1], data[2])
-        bot.set_token(data[3])
+        conn.close()
+        return None
+    bot = Bot(data[0], data[1], data[2])
+    bot.set_token(data[3])
     conn.commit()
     conn.close()
     return bot
 
+# スクレイピングするwebのdbが存在するかを確認、なければ作成、あればデータを返す
 def get_manaba_data() -> Web:
     conn = sqlite3.connect('my.db')
     c = conn.cursor()
@@ -54,12 +61,12 @@ def get_manaba_data() -> Web:
     web = Web(data[0], data[1], data[2], data[3], data[4])
     conn.commit()
     conn.close()
-    return data, web
+    return web
 
-
+# manabaからレポート情報を取得
 def get_homeworks() -> list:
     # manabaログイン情報
-    data,web = get_manaba_data()
+    web = get_manaba_data()
 
     # headlessモードで実行
     options = Options()
@@ -71,7 +78,7 @@ def get_homeworks() -> list:
         browser.get(web.get_pageData('url'))
         time.sleep(3)
     else:
-        register_web(default_name=data[0], default_id=data[2], default_password=data[3])
+        register_web(default_name=web.get_pageData('name'), default_id=web.get_pageData('id'), default_password=web.get_pageData('password'))
         return None
     
     form_dict = {'/html/body/div/div[2]/div[1]/form/p[1]/input':web.get_pageData('id'),
@@ -93,7 +100,7 @@ def get_homeworks() -> list:
         c.execute("DELETE FROM webs WHERE name='manaba'")
         conn.commit()
         conn.close()
-        register_web(default_name=data[0], default_url=data[1])
+        register_web(default_name=web.get_pageData('name'), default_url=web.get_pageData('url'))
         return None
 
     # 受講科目の表示を曜日形式に変更
@@ -121,6 +128,7 @@ def get_homeworks() -> list:
             pass
     return homeworks
 
+# LINE Notifyで取得massageを送信
 def send_message(messages:list, bot:Bot):
     # 取得トークン
     TOKEN = bot.show_data()[3]

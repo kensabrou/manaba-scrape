@@ -59,6 +59,7 @@ class BotRegister(tkinter.Frame):
         self.master.columnconfigure(0, weight=1)
         self.master.rowconfigure(0, weight=1)
     
+    # create table in my.db
     def create_table(self, col_list:list) -> None:
         conn = sqlite3.connect("my.db")
         c = conn.cursor()
@@ -70,6 +71,7 @@ class BotRegister(tkinter.Frame):
         conn.commit()
         conn.close()
 
+    # register data for my.db
     def register(self, info_dic:dict, commit=True) -> None:
         
         conn = sqlite3.connect("my.db")
@@ -82,7 +84,6 @@ class BotRegister(tkinter.Frame):
         try:
             # insert data to the database.
             c.execute(f"INSERT INTO bots VALUES ({types})", info_dic)
-            # self.quit()
         except:
             pass
         # commit changes to the database.
