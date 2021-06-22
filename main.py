@@ -23,7 +23,6 @@ def get_bot_data():
     conn = sqlite3.connect('my.db')
     c = conn.cursor()
     data = None
-    bot = None
     try:
         c.execute("SELECT * FROM bots")
         data = c.fetchone()
@@ -32,8 +31,11 @@ def get_bot_data():
             data = c.fetchone()
     except:
         register_bot()
-        conn.close()
-        return None
+        try:
+            c.execute("SELECT * FROM bots")
+            data = c.fetchone()
+        except:
+            return None
     bot = Bot(data[0], data[1], data[2])
     bot.set_token(data[3])
     conn.commit()
@@ -87,7 +89,7 @@ def get_homeworks():
         browser.get(web.get_pageData('url'))
         time.sleep(3)
     else:
-        print('URL does not exist')
+        print('指定されたページが存在しません。')
         return None
 
     form_dict = {'/html/body/div/div[2]/div[1]/form/p[1]/input':web.get_pageData('id'),
@@ -102,6 +104,7 @@ def get_homeworks():
         scrape.button_click(browser, '/html/body/div[2]/div[1]/div[5]/div[2]/a/img')
         time.sleep(3)
     except:
+        print('manabaのID、またはパスワードが異なっています。')
         browser.quit()
         print('fail to login. Check your id and password registered.')
         conn = sqlite3.connect('my.db')

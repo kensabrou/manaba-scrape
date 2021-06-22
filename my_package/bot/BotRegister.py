@@ -132,6 +132,7 @@ class BotRegister(tkinter.Frame):
             self.register(info_dic, commit=False)
             self.quit()
         except:
+            print('LINEのメールアドレス、またはパスワードが異なっています。')
             browser.quit()
             self.quit()
             return False
@@ -148,6 +149,7 @@ class BotRegister(tkinter.Frame):
         try:
             scrape.input_element(browser, form_dict)
         except:
+            print('bot名が記入されていない、またはボタンが画面外でクリックできません。')
             browser.quit()
             self.quit()
             return False
@@ -159,8 +161,6 @@ class BotRegister(tkinter.Frame):
         time.sleep(3)
         token = browser.find_element_by_xpath('/html/body/div/div/section[2]/div[2]/div/div[2]/div[1]/input').get_attribute('value')
         bot.set_token(token)
-        info_dic = self.form_output(bot)
-        self.register(info_dic)
         browser.quit()
         return True
 
