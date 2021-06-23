@@ -41,7 +41,7 @@ class BotRegister(tkinter.Frame):
         self.name_box.grid(column=1, row=2, sticky=tkinter.EW, padx=5, pady=5, ipady=7)
 
         # create buttom and place them
-        self.registerBtn = ttk.Button(self, text='登録', command=self.certificate_bot)
+        self.registerBtn = ttk.Button(self, text='登録', command=self.certificate_bot, state='normal')
         self.registerBtn.grid(column=1, row=4, pady=5)
 
         # set column extension ratio 
@@ -59,6 +59,10 @@ class BotRegister(tkinter.Frame):
         self.master.columnconfigure(0, weight=1)
         self.master.rowconfigure(0, weight=1)
     
+    def swich_state(self):
+        if self.registerBtn['state'] == 'normal':
+            self.registerBtn['state'] = 'disable'
+
     # create table in my.db
     def create_table(self, col_list:list) -> None:
         conn = sqlite3.connect("my.db")
@@ -92,6 +96,7 @@ class BotRegister(tkinter.Frame):
         conn.close()
 
     def certificate_bot(self):
+        self.swich_state()
         email = self.email_box.get()
         password = self.password_box.get()
         name = self.name_box.get()

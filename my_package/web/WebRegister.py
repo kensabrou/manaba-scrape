@@ -43,7 +43,7 @@ class WebRegister(tkinter.Frame):
         self.email_box.grid(column=1, row=4, sticky=tkinter.EW, padx=5, pady=5, ipady=10)
 
         # create buttom and place them
-        self.registerBtn = ttk.Button(self, text='登録', command=self.register)
+        self.registerBtn = ttk.Button(self, text='登録', command=self.register, state='normal')
         self.registerBtn.grid(column=1, row=5, pady=5)
 
         # set column extension ratio 
@@ -61,8 +61,13 @@ class WebRegister(tkinter.Frame):
         self.master.columnconfigure(0, weight=1)
         self.master.rowconfigure(0, weight=1)
 
+    # swich current button state
+    def swich_state(self):
+        if self.registerBtn['state'] == 'normal':
+            self.registerBtn['state'] = 'disable'
+
     def register(self) -> None:
-        
+        self.swich_state()
         conn = sqlite3.connect("my.db")
         c = conn.cursor()
         # create table if the table does not exist.
