@@ -28,6 +28,7 @@ def get_bot_data():
         data = c.fetchone()
         if data is None:
             register_bot()
+            c.execute("SELECT * FROM bots")
             data = c.fetchone()
     except:
         register_bot()
