@@ -31,12 +31,13 @@ def get_bot_data():
             data = c.fetchone()
     except:
         register_bot()
-        try:
-            c.execute("SELECT * FROM bots")
-            data = c.fetchone()
-        except:
-            return None
-    bot = Bot(data[0], data[1], data[2])
+        c.execute("SELECT * FROM bots")
+        data = c.fetchone()
+    try:
+        bot = Bot(data[0], data[1], data[2])
+    except:
+        conn.close()
+        return None
     bot.set_token(data[3])
     conn.commit()
     conn.close()
@@ -56,12 +57,8 @@ def get_manaba_data():
             data = c.fetchone()
     except:
         register_web(default_name='manaba', default_url='https://ct.ritsumei.ac.jp/ct/home')
-        try:
-            c.execute("SELECT * FROM webs WHERE name = 'manaba'")
-            data = c.fetchone()
-        except:
-            conn.close()
-            return None
+        c.execute("SELECT * FROM webs WHERE name = 'manaba'")
+        data = c.fetchone()
     if data is None:
         c.execute("DELETE FROM webs WHERE name='manaba'")
         conn.commit()
@@ -139,7 +136,7 @@ def get_homeworks():
             pass
     return homeworks
 
-# LINE Notifyで取得massageを送信
+# LINE Notifyで取得messageを送信
 def send_message(messages:list, bot:Bot):
     # 取得トークン
     TOKEN = bot.show_data()[3]

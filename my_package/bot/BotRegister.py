@@ -21,6 +21,9 @@ class BotRegister(tkinter.Frame):
 
         self.create_widgets()
 
+        # create table in database
+        self.create_table()
+
     def create_widgets(self) -> dict:
         # create wedget (email add registered in Line) and place them
         self.email_label = ttk.Label(self, text='Lineメールアドレス')
@@ -58,19 +61,36 @@ class BotRegister(tkinter.Frame):
         # make the top level widget correnpond to extension
         self.master.columnconfigure(0, weight=1)
         self.master.rowconfigure(0, weight=1)
-    
-    def swich_state(self):
-        if self.registerBtn['state'] == 'normal':
-            self.registerBtn['state'] = 'disable'
+
+    def certificate_bot(self):
+        # collect data that was filled in.
+        email = self.email_box.get()
+        password = self.password_box.get()
+        name = self.name_box.get()
+        bot = Bot(email, password, name)
+        self.quit()
+        # try to create bot based on data above
+        success = self.create_bot(bot)
+        if success:
+            info_dic = self.form_output(bot)
+            self.register(info_dic)
+
+    def quit(self):
+        self.master.destroy()
+
+    def form_output(self, bot:Bot) -> dict:
+        email, pw, name, token = bot.show_data()
+        return {'line_email':email, 'line_password':pw, 'name':name, 'token':token}
 
     # create table in my.db
-    def create_table(self, col_list:list) -> None:
+    def create_table(self) -> None:
         conn = sqlite3.connect("my.db")
         c = conn.cursor()
-        key_list = []
-        for key in col_list:
-            key_list.append(key)
-        table_col = ' text,'.join(key_list)
+        col_list = ['line_email', 'line_password', 'name', 'token']
+        column = []
+        for col in col_list:
+            column.append(col)
+        table_col = ' text,'.join(column)
         c.execute(f"CREATE TABLE IF NOT EXISTS bots ({table_col})")
         conn.commit()
         conn.close()
@@ -95,27 +115,8 @@ class BotRegister(tkinter.Frame):
             conn.commit()
         conn.close()
 
-    def certificate_bot(self):
-        self.swich_state()
-        email = self.email_box.get()
-        password = self.password_box.get()
-        name = self.name_box.get()
-        bot = Bot(email, password, name)
-        success = self.create_bot(bot)
-        if success:
-            info_dic = self.form_output(bot)
-            self.register(info_dic)
-
-    def quit(self):
-        self.master.destroy()
-
-    def form_output(self, bot:Bot) -> dict:
-        email, pw, name, token = bot.show_data()
-        return {'line_email':email, 'line_password':pw, 'name':name, 'token':token}
-
     def create_bot(self, bot:Bot) -> bool:
-        # データベースにテーブルを作成
-        self.create_table(['line_email', 'line_password', 'name', 'token'])
+        
         # headlessモードで実行
         options = Options()
         options.add_argument('--headless')
@@ -135,11 +136,10 @@ class BotRegister(tkinter.Frame):
             code = browser.find_element_by_xpath('/html/body/div[3]/div/div/p[1]').text
             info_dic = self.form_output(bot)
             self.register(info_dic, commit=False)
-            self.quit()
         except:
             print('LINEのメールアドレス、またはパスワードが異なっています。')
             browser.quit()
-            self.quit()
+            register_bot()
             return False
         time.sleep(2)
         show_auth_code(code)
@@ -156,7 +156,7 @@ class BotRegister(tkinter.Frame):
         except:
             print('bot名が記入されていない、またはボタンが画面外でクリックできません。')
             browser.quit()
-            self.quit()
+            register_bot()
             return False
         time.sleep(2)
 

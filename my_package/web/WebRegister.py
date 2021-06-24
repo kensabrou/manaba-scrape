@@ -13,6 +13,9 @@ class WebRegister(tkinter.Frame):
 
         self.create_widgets()
 
+        # create table in database
+        self.create_table()
+
     def create_widgets(self):
         # create wedget (page name) and place them
         self.name_label = ttk.Label(self, text='登録ページ名')
@@ -61,23 +64,26 @@ class WebRegister(tkinter.Frame):
         self.master.columnconfigure(0, weight=1)
         self.master.rowconfigure(0, weight=1)
 
-    # swich current button state
-    def swich_state(self):
-        if self.registerBtn['state'] == 'normal':
-            self.registerBtn['state'] = 'disable'
+    # create table in my.db
+    def create_table(self) -> None:
+        conn = sqlite3.connect("my.db")
+        c = conn.cursor()
+        col_list = ['name', 'url', 'id', 'password', 'email']
+        column = []
+        for col in col_list:
+            column.append(col)
+        table_col = ' text,'.join(column)
+        c.execute(f"CREATE TABLE IF NOT EXISTS webs ({table_col})")
+        conn.commit()
+        conn.close()
 
     def register(self) -> None:
-        self.swich_state()
         conn = sqlite3.connect("my.db")
         c = conn.cursor()
         # create table if the table does not exist.
         type_list = []
-        key_list = []
         for key in self.form_output():
             type_list.append(f':{key}')
-            key_list.append(key)
-        table_col = ' text,'.join(key_list)
-        c.execute(f"CREATE TABLE IF NOT EXISTS webs ({table_col})")
         types = ','.join(type_list)
         try:
             # insert data to the database.
