@@ -3,6 +3,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 
 import tkinter
+from tkinter import messagebox
 from tkinter import ttk
 import time
 import sqlite3
@@ -137,7 +138,7 @@ class BotRegister(tkinter.Frame):
             info_dic = self.form_output(bot)
             self.register(info_dic, commit=False)
         except:
-            print('LINEのメールアドレス、またはパスワードが異なっています。')
+            error_message('LINEのメールアドレス、またはパスワードが異なっています。')
             browser.quit()
             register_bot()
             return False
@@ -154,7 +155,7 @@ class BotRegister(tkinter.Frame):
         try:
             scrape.input_element(browser, form_dict)
         except:
-            print('bot名が記入されていない、またはボタンが画面外でクリックできません。')
+            error_message('bot名が記入されていない、またはボタンが画面外でクリックできません。')
             browser.quit()
             register_bot()
             return False
@@ -168,6 +169,13 @@ class BotRegister(tkinter.Frame):
         bot.set_token(token)
         browser.quit()
         return True
+
+def error_message(text:str):
+    root = tkinter.Tk()
+    root.withdraw()
+    messagebox.showerror('エラー',text)
+    time.sleep(5)
+    root.destroy()
 
 def show_auth_code(code):
     main_window = tkinter.Tk()
@@ -188,6 +196,32 @@ def register_bot():
     root = tkinter.Tk()
     form = BotRegister(root)
     form.mainloop()
+
+# LINEアカウント情報を用いてLINE Notifyサービスと連携する
+def get_bot_data():
+    conn = sqlite3.connect('my.db')
+    c = conn.cursor()
+    data = None
+    try:
+        c.execute("SELECT * FROM bots")
+        data = c.fetchone()
+        if data is None:
+            register_bot()
+            c.execute("SELECT * FROM bots")
+            data = c.fetchone()
+    except:
+        register_bot()
+        c.execute("SELECT * FROM bots")
+        data = c.fetchone()
+    try:
+        bot = Bot(data[0], data[1], data[2])
+    except:
+        conn.close()
+        return None
+    bot.set_token(data[3])
+    conn.commit()
+    conn.close()
+    return bot
 
 if __name__ == '__main__':
     register_bot()

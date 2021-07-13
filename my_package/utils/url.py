@@ -5,9 +5,7 @@ import urllib.error
 def checkURL(url) -> bool:
     try:
         f = urllib.request.urlopen(url)
-        print('URL exists')
         f.close()
         return True
     except:
-        print("URL doesn't exist")
         return False
