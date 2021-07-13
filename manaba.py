@@ -16,7 +16,7 @@ from my_package.web.WebRegister import register_web
 from my_package.utils import url, scrape
 
 # スクレイピングするwebのdbが存在するかを確認、なければ作成、あればデータを返す
-def get_manaba_data():
+def get_web_data():
     conn = sqlite3.connect('my.db')
     c = conn.cursor()
     data = None
@@ -42,9 +42,9 @@ def get_manaba_data():
     return web
 
 # manabaからレポート情報を取得
-def get_courses():
+def manaba_scrape():
     # manabaログイン情報
-    web = get_manaba_data()
+    web = get_web_data()
     if web is None:
         return None
 
@@ -74,7 +74,7 @@ def get_courses():
         scrape.button_click(browser, '/html/body/div[2]/div[1]/div[5]/div[2]/a/img')
         time.sleep(3)
     except:
-        error_message('manabaに正常にアクセスできませんでした。')
+        error_message('manabaのログインに失敗しました。')
         browser.quit()
         return None
 
@@ -86,9 +86,6 @@ def get_courses():
     html = browser.page_source.encode('utf-8')
     soup = BeautifulSoup(html, 'html.parser')
     my_courses = soup.find_all('td', attrs={'class':'course-cell'})
-    return my_courses
-
-def verify(my_courses):
     homeworks = []
     for course in my_courses:
         # 授業名
@@ -106,12 +103,13 @@ def verify(my_courses):
     return homeworks
 
 def error_message(text:str):
+    conn = sqlite3.connect('my.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM webs WHERE name='manaba'")
+    conn.commit()
+    conn.close()
     root = tkinter.Tk()
     root.withdraw()
     messagebox.showerror('エラー',text)
     time.sleep(5)
     root.destroy()
-
-def manaba_scrape():
-    my_courses = get_courses()
-    homeworks = verify(my_courses)

@@ -32,7 +32,7 @@ def main():
     if bot is not None:
         homework = manaba_scrape()
         if homework is None:
-           exit()
+            exit()
         if homework is not None:
             send_message(homework, bot)
 
