@@ -20,7 +20,12 @@ def send_message(messages:list, bot:Bot):
     if not messages:
         send_contents = '未提出のレポート課題はありません'
     else:
-        send_contents = '\n'.join(messages)
+        send_contents = ""
+        for i in range(len(messages)):
+            class_name = messages[i][0]
+            report = messages[i][1]
+            difftime = messages[i][2]
+            send_contents += f"\n授業名：{class_name}\nレポート名：{report}\n期限まで {difftime}\n"
 
     TOKEN_dic = {'Authorization': 'Bearer' + ' ' + TOKEN}
     send_dic = {'message': send_contents}
