@@ -18,7 +18,7 @@ def send_message(messages:list, bot:Bot):
     api_url = 'https://notify-api.line.me/api/notify'
     # 送る内容
     if not messages:
-        send_contents = '未提出のレポート課題はありません'
+        send_contents = '\n未提出のレポート課題はありません'
     else:
         send_contents = ""
         for i in range(len(messages)):
